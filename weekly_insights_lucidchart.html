@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Business Insights Service - Architecture Diagram</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.8;
+            font-size: 1.1em;
+        }
+        
+        .diagram-container {
+            padding: 40px;
+            background: #f8f9fa;
+            position: relative;
+            overflow-x: auto;
+        }
+        
+        .architecture-diagram {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(6, auto);
+            gap: 20px;
+            min-width: 1200px;
+            padding: 20px;
+        }
+        
+        .component {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-left: 5px solid;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .component:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        
+        .scheduler { border-left-color: #e74c3c; grid-column: 1; }
+        .service { border-left-color: #3498db; }
+        .database { border-left-color: #2ecc71; }
+        .email { border-left-color: #f39c12; }
+        .monitoring { border-left-color: #9b59b6; }
+        
+        .component-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .component-details {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            line-height: 1.4;
+        }
+        
+        .tech-specs {
+            background: #ecf0f1;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 0.8em;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .flow-arrow {
+            position: absolute;
+            color: #3498db;
+            font-size: 2em;
+            font-weight: bold;
+            z-index: 10;
+        }
+        
+        .arrow-right { transform: rotate(0deg); }
+        .arrow-down { transform: rotate(90deg); }
+        
+        .data-flow {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .metric-label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        .table-schema {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            margin-top: 10px;
+            overflow-x: auto;
+        }
+        
+        .json-structure {
+            background: #34495e;
+            color: #1abc9c;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            margin-top: 8px;
+            white-space: pre-wrap;
+        }
+        
+        .schedule-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7em;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        
+        .optimization-tag {
+            background: #27ae60;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7em;
+            display: inline-block;
+            margin: 2px;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .active-process {
+            animation: pulse 2s infinite;
+        }
+        
+        .grid-row-1 { grid-row: 1; }
+        .grid-row-2 { grid-row: 2; }
+        .grid-row-3 { grid-row: 3; }
+        .grid-row-4 { grid-row: 4; }
+        .grid-row-5 { grid-row: 5; }
+        .grid-row-6 { grid-row: 6; }
+        
+        .grid-col-1 { grid-column: 1; }
+        .grid-col-2 { grid-column: 2; }
+        .grid-col-3 { grid-column: 3; }
+        .grid-col-4 { grid-column: 4; }
+        .grid-col-span-2 { grid-column: span 2; }
+        .grid-col-span-4 { grid-column: span 4; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Weekly Business Insights Service</h1>
+            <p>Technical Architecture & Implementation Plan</p>
+        </div>
+        
+        <div class="diagram-container">
+            <div class="architecture-diagram">
+                
+                <!-- Row 1: Schedulers -->
+                <div class="component scheduler grid-row-1 grid-col-1">
+                    <div class="component-title">📅 Data Processing Job</div>
+                    <div class="component-details">
+                        Calculates weekly business metrics for all tenants
+                    </div>
+                    <div class="schedule-badge">Every Friday 4:00 AM</div>
+                    <div class="tech-specs">
+                        WeeklyInsightsProcessingJob<br>
+                        • Chunked processing (500 companies)<br>
+                        • Memory efficient<br>
+                        • Progress tracking
+                    </div>
+                </div>
+                
+                <div class="component scheduler grid-row-1 grid-col-2">
+                    <div class="component-title">📧 Email Delivery Job</div>
+                    <div class="component-details">
+                        Sends calculated insights to active clients
+                    </div>
+                    <div class="schedule-badge">Every Friday 6:00 AM</div>
+                    <div class="tech-specs">
+                        WeeklyInsightsEmailService<br>
+                        • Batch size: 50 emails<br>
+                        • 30s delay between batches<br>
+                        • Retry mechanism
+                    </div>
+                </div>
+                
+                <!-- Row 2: Core Services -->
+                <div class="component service grid-row-2 grid-col-1">
+                    <div class="component-title">⚙️ Insights Calculation Service</div>
+                    <div class="component-details">
+                        Core business logic for metric calculations
+                    </div>
+                    <div class="tech-specs">
+                        InsightsCalculationService<br>
+                        <span class="optimization-tag">Parallel Processing</span>
+                        <span class="optimization-tag">Connection Pooling</span>
+                        <span class="optimization-tag">Query Optimization</span>
+                    </div>
+                    <div class="json-structure">Methods:
+• calculateRevenue()
+• calculateExpenses() 
+• calculatePurchases()
+• calculateNetProfit()
+• calculateOverduePayments()</div>
+                </div>
+                
+                <div class="component service grid-row-2 grid-col-2">
+                    <div class="component-title">📧 Email Template Engine</div>
+                    <div class="component-details">
+                        Multi-language email template generation
+                    </div>
+                    <div class="tech-specs">
+                        InsightsEmailTemplate<br>
+                        • Arabic/English support<br>
+                        • Currency formatting<br>
+                        • Template caching
+                    </div>
+                </div>
+                
+                <!-- Row 3: Database Architecture -->
+                <div class="component database grid-row-3 grid-col-1 grid-col-span-2">
+                    <div class="component-title">🗄️ Main Database - weekly_insights_log</div>
+                    <div class="component-details">
+                        Central logging and tracking table
+                    </div>
+                    <div class="table-schema">
+CREATE TABLE weekly_insights_log (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    week_id VARCHAR(8) UNIQUE NOT NULL,
+    week_start_date DATE NOT NULL,
+    week_end_date DATE NOT NULL,
+    total_emails_sent INT DEFAULT 0,
+    total_emails_delivered INT DEFAULT 0,
+    total_emails_failed INT DEFAULT 0,
+    status ENUM('pending', 'processing_data', 'data_ready', 
+                'sending_emails', 'completed', 'failed'),
+    processing_started_at TIMESTAMP NULL,
+    processing_completed_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+                    </div>
+                </div>
+                
+                <div class="component database grid-row-3 grid-col-3 grid-col-span-2">
+                    <div class="component-title">🏢 Per-Tenant Database - tenant_insights</div>
+                    <div class="component-details">
+                        Individual tenant calculation results
+                    </div>
+                    <div class="table-schema">
+CREATE TABLE tenant_insights (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    week_id VARCHAR(8) NOT NULL,
+    company_id BIGINT NOT NULL,
+    calculations JSON NOT NULL,
+    email_sent_at TIMESTAMP NULL,
+    email_delivery_status ENUM('pending', 'sent', 
+                               'delivered', 'failed', 'retry'),
+    email_retry_count TINYINT DEFAULT 0,
+    calculation_duration_ms INT NULL,
+    UNIQUE KEY unique_week_company (week_id, company_id)
+);
+                    </div>
+                    <div class="json-structure">JSON Structure:
+{
+  "revenue": 125000.50,
+  "expenses": 45000.25,
+  "purchases": 30000.00,
+  "net_profit": 80000.25,
+  "overdue_payments": {
+    "0-30_days": 15000,
+    "31-60_days": 8000,
+    "60+_days": 3000
+  }
+}</div>
+                </div>
+                
+                <!-- Row 4: Data Flow -->
+                <div class="data-flow grid-row-4">
+                    <h3>📊 Weekly Data Processing Flow</h3>
+                    <p><strong>Thursday 11:59 PM → Next Thursday 11:59 PM</strong></p>
+                    <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 20px;">
+                        <div>1. Data Collection</div>
+                        <div>→</div>
+                        <div>2. Calculation Processing</div>
+                        <div>→</div>
+                        <div>3. Storage</div>
+                        <div>→</div>
+                        <div>4. Email Generation</div>
+                        <div>→</div>
+                        <div>5. Delivery</div>
+                    </div>
+                </div>
+                
+                <!-- Row 5: Performance Optimizations -->
+                <div class="component service grid-row-5 grid-col-1">
+                    <div class="component-title">🚀 Database Optimizations</div>
+                    <div class="component-details">
+                        Performance enhancement strategies
+                    </div>
+                    <div class="tech-specs">
+                        <span class="optimization-tag">Composite Indexes</span>
+                        <span class="optimization-tag">Covering Indexes</span>
+                        <span class="optimization-tag">Query Caching</span>
+                        <span class="optimization-tag">Read Replicas</span>
+                        <span class="optimization-tag">Connection Pooling</span>
+                    </div>
+                    <div class="json-structure">Key Indexes:
+• idx_week_id
+• idx_status  
+• idx_week_dates
+• unique_week_company</div>
+                </div>
+                
+                <div class="component service grid-row-5 grid-col-2">
+                    <div class="component-title">💾 Caching Strategy</div>
+                    <div class="component-details">
+                        Redis-based performance caching
+                    </div>
+                    <div class="tech-specs">
+                        <span class="optimization-tag">Company Settings</span>
+                        <span class="optimization-tag">Calculation Templates</span>
+                        <span class="optimization-tag">Active Client Lists</span>
+                        <span class="optimization-tag">Reference Data</span>
+                    </div>
+                    <div class="json-structure">Cache Refresh:
+• Company data: Real-time
+• Client lists: Hourly
+• Templates: Daily</div>
+                </div>
+                
+                <div class="component service grid-row-5 grid-col-3">
+                    <div class="component-title">🔄 Retry & Recovery</div>
+                    <div class="component-details">
+                        Error handling and resilience
+                    </div>
+                    <div class="tech-specs">
+                        <span class="optimization-tag">Circuit Breaker</span>
+                        <span class="optimization-tag">Exponential Backoff</span>
+                        <span class="optimization-tag">Dead Letter Queue</span>
+                        <span class="optimization-tag">Queue Integration</span>
+                    </div>
+                    <div class="json-structure">Retry Logic:
+• Max attempts: 3
+• Backoff: 1s, 5s, 15s
+• Failure threshold: 5%</div>
+                </div>
+                
+                <div class="component service grid-row-5 grid-col-4">
+                    <div class="component-title">🌐 Multi-language Support</div>
+                    <div class="component-details">
+                        Localization and formatting
+                    </div>
+                    <div class="tech-specs">
+                        <span class="optimization-tag">Arabic</span>
+                        <span class="optimization-tag">English</span>
+                        <span class="optimization-tag">Currency Format</span>
+                        <span class="optimization-tag">Number Format</span>
+                    </div>
+                    <div class="json-structure">Features:
+• RTL/LTR support
+• Currency symbols
+• Date formatting
+• Number localization</div>
+                </div>
+                
+                <!-- Row 6: Monitoring & KPIs -->
+                <div class="component monitoring grid-row-6 grid-col-span-4">
+                    <div class="component-title">📈 Monitoring & Key Performance Indicators</div>
+                    <div class="performance-metrics">
+                        <div class="metric-card">
+                            <div class="metric-value">< 2 hours</div>
+                            <div class="metric-label">Processing Time Limit</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">< 5%</div>
+                            <div class="metric-label">Email Failure Rate</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">< 1GB</div>
+                            <div class="metric-label">Memory Usage Limit</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">< 500ms</div>
+                            <div class="metric-label">Calculation Time Limit</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">500</div>
+                            <div class="metric-label">Companies per Chunk</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">50</div>
+                            <div class="metric-label">Emails per Batch</div>
+                        </div>
+                    </div>
+                    <div class="json-structure">Log Structure:
+{
+  "week_id": "2025-30",
+  "processing_duration_ms": 45000,
+  "companies_processed": 1250,
+  "emails_sent": 3500,
+  "emails_delivered": 3450,
+  "emails_failed": 50,
+  "average_calculation_time_ms": 36,
+  "memory_peak_mb": 512,
+  "retry_attempts": 15
+}</div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Add some interactive animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const components = document.querySelectorAll('.component');
+            
+            // Stagger the initial animation
+            components.forEach((component, index) => {
+                component.style.opacity = '0';
+                component.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    component.style.transition = 'all 0.6s ease';
+                    component.style.opacity = '1';
+                    component.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+            
+            // Add click handlers for detailed views
+            components.forEach(component => {
+                component.addEventListener('click', function() {
+                    this.classList.toggle('active-process');
+                });
+            });
+            
+            // Simulate live processing indicators
+            setInterval(() => {
+                const schedulers = document.querySelectorAll('.scheduler');
+                schedulers.forEach(scheduler => {
+                    scheduler.classList.toggle('active-process');
+                });
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
