@@ -228,54 +228,92 @@
                 
                 <!-- Row 1: Schedulers -->
                 <div class="component scheduler grid-row-1 grid-col-1">
-                    <div class="component-title">📅 Data Processing Job</div>
+                    <div class="component-title">📅 Weekly Insights Command</div>
                     <div class="component-details">
-                        Calculates weekly business metrics for all tenants
+                        Laravel console command that dispatches job chain
                     </div>
-                    <div class="schedule-badge">Every Friday 4:00 AM</div>
+                    <div class="schedule-badge">Every Friday 4:00 AM (Asia/Riyadh)</div>
                     <div class="tech-specs">
-                        WeeklyInsightsProcessingJob<br>
-                        • Chunked processing (500 companies)<br>
-                        • Memory efficient<br>
-                        • Progress tracking
+                        WeeklyInsightsCommand<br>
+                        • Dispatches GenerateWeeklyInsightsJob<br>
+                        • OnSuccess → SendWeeklyInsightsJob<br>
+                        • Job chain pattern
                     </div>
                 </div>
                 
                 <div class="component scheduler grid-row-1 grid-col-2">
-                    <div class="component-title">📧 Email Delivery Job</div>
+                    <div class="component-title">⛓️ Job Chain Processing</div>
                     <div class="component-details">
-                        Sends calculated insights to active clients
+                        Chained job execution pattern for reliability
                     </div>
-                    <div class="schedule-badge">Every Friday 6:00 AM</div>
+                    <div class="schedule-badge">Queued Processing</div>
                     <div class="tech-specs">
-                        WeeklyInsightsEmailService<br>
-                        • Batch size: 50 emails<br>
-                        • 30s delay between batches<br>
-                        • Retry mechanism
+                        Bus::chain([<br>
+                        &nbsp;&nbsp;GenerateWeeklyInsightsJob,<br>
+                        &nbsp;&nbsp;SendWeeklyInsightsJob<br>
+                        ])->dispatch();<br>
+                        • Automatic failure handling<br>
+                        • Sequential execution
                     </div>
                 </div>
                 
-                <!-- Row 2: Core Services -->
+                <!-- Row 2: Job Services -->
                 <div class="component service grid-row-2 grid-col-1">
+                    <div class="component-title">⚙️ Generate Weekly Insights Job</div>
+                    <div class="component-details">
+                        First job in chain - processes all companies data
+                    </div>
+                    <div class="tech-specs">
+                        GenerateWeeklyInsightsJob<br>
+                        <span class="optimization-tag">Queue Processing</span>
+                        <span class="optimization-tag">Chunked Companies</span>
+                        <span class="optimization-tag">Per-tenant Cache</span>
+                    </div>
+                    <div class="json-structure">Process:
+• Chunk companies (500 per batch)
+• Dispatch InsightsCalculationService
+• Cache per-tenant during execution
+• Delete cache after completion</div>
+                </div>
+                
+                <div class="component service grid-row-2 grid-col-2">
+                    <div class="component-title">📧 Send Weekly Insights Job</div>
+                    <div class="component-details">
+                        Second job in chain - sends emails after data generation
+                    </div>
+                    <div class="tech-specs">
+                        SendWeeklyInsightsJob<br>
+                        • Batch size: 50 emails<br>
+                        • 30s delay between batches<br>
+                        • Only runs after successful generation
+                    </div>
+                </div>
+                
+                <!-- Row 3: Core Services -->
+                <div class="component service grid-row-3 grid-col-1">
                     <div class="component-title">⚙️ Insights Calculation Service</div>
                     <div class="component-details">
                         Core business logic for metric calculations
                     </div>
                     <div class="tech-specs">
                         InsightsCalculationService<br>
-                        <span class="optimization-tag">Parallel Processing</span>
-                        <span class="optimization-tag">Connection Pooling</span>
-                        <span class="optimization-tag">Query Optimization</span>
+                        <span class="optimization-tag">Async Processing</span>
+                        <span class="optimization-tag">Database Transactions</span>
+                        <span class="optimization-tag">Per-tenant Caching</span>
                     </div>
                     <div class="json-structure">Methods:
 • calculateRevenue()
 • calculateExpenses() 
 • calculatePurchases()
 • calculateNetProfit()
-• calculateOverduePayments()</div>
+• calculateOverduePayments()
+
+Cache Management:
+• Cache during execution
+• Delete cache after completion</div>
                 </div>
                 
-                <div class="component service grid-row-2 grid-col-2">
+                <div class="component service grid-row-3 grid-col-2">
                     <div class="component-title">📧 Email Template Engine</div>
                     <div class="component-details">
                         Multi-language email template generation
@@ -287,12 +325,11 @@
                         • Template caching
                     </div>
                 </div>
-                
-                <!-- Row 3: Database Architecture -->
-                <div class="component database grid-row-3 grid-col-1 grid-col-span-2">
+                <!-- Row 4: Database Architecture -->
+                <div class="component database grid-row-4 grid-col-1 grid-col-span-2">
                     <div class="component-title">🗄️ Main Database - weekly_insights_log</div>
                     <div class="component-details">
-                        Central logging and tracking table
+                        Central logging and tracking table (Simplified Schema)
                     </div>
                     <div class="table-schema">
 CREATE TABLE weekly_insights_log (
@@ -301,169 +338,184 @@ CREATE TABLE weekly_insights_log (
     week_start_date DATE NOT NULL,
     week_end_date DATE NOT NULL,
     total_emails_sent INT DEFAULT 0,
-    total_emails_delivered INT DEFAULT 0,
     total_emails_failed INT DEFAULT 0,
-    status ENUM('pending', 'processing_data', 'data_ready', 
-                'sending_emails', 'completed', 'failed'),
-    processing_started_at TIMESTAMP NULL,
-    processing_completed_at TIMESTAMP NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
+                      ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_week_id (week_id),
+    INDEX idx_week_dates (week_start_date, week_end_date)
 );
                     </div>
                 </div>
                 
-                <div class="component database grid-row-3 grid-col-3 grid-col-span-2">
+                <div class="component database grid-row-4 grid-col-3 grid-col-span-2">
                     <div class="component-title">🏢 Per-Tenant Database - tenant_insights</div>
                     <div class="component-details">
-                        Individual tenant calculation results
+                        Individual tenant calculation results (Updated Schema)
                     </div>
                     <div class="table-schema">
 CREATE TABLE tenant_insights (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     week_id VARCHAR(8) NOT NULL,
+    week_start_date DATE NOT NULL,
+    week_end_date DATE NOT NULL,
     company_id BIGINT NOT NULL,
-    calculations JSON NOT NULL,
+    insights_data JSON NOT NULL,
     email_sent_at TIMESTAMP NULL,
-    email_delivery_status ENUM('pending', 'sent', 
-                               'delivered', 'failed', 'retry'),
-    email_retry_count TINYINT DEFAULT 0,
+    email_delivery_status ENUM('pending', 'sent', 'failed') 
+                          DEFAULT 'pending',
+    email_failure_reason TEXT NULL,
     calculation_duration_ms INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
+              ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL,
     UNIQUE KEY unique_week_company (week_id, company_id)
 );
                     </div>
-                    <div class="json-structure">JSON Structure:
+                    <div class="json-structure">insights_data JSON:
 {
   "revenue": 125000.50,
   "expenses": 45000.25,
   "purchases": 30000.00,
   "net_profit": 80000.25,
   "overdue_payments": {
-    "0-30_days": 15000,
-    "31-60_days": 8000,
-    "60+_days": 3000
+    "0_30_days": 15000,
+    "31_60_days": 8000,
+    "60_plus_days": 3000
   }
 }</div>
                 </div>
                 
-                <!-- Row 4: Data Flow -->
-                <div class="data-flow grid-row-4">
+                <!-- Row 5: Data Flow -->
+                <div class="data-flow grid-row-5">
                     <h3>📊 Weekly Data Processing Flow</h3>
                     <p><strong>Thursday 11:59 PM → Next Thursday 11:59 PM</strong></p>
                     <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 20px;">
-                        <div>1. Data Collection</div>
+                        <div>1. Console Command</div>
                         <div>→</div>
-                        <div>2. Calculation Processing</div>
+                        <div>2. Generate Job Chain</div>
                         <div>→</div>
-                        <div>3. Storage</div>
+                        <div>3. Calculate Insights</div>
                         <div>→</div>
-                        <div>4. Email Generation</div>
+                        <div>4. Send Emails</div>
                         <div>→</div>
-                        <div>5. Delivery</div>
+                        <div>5. Clean Historical Data</div>
+                    </div>
+                    <div style="margin-top: 15px; font-size: 0.9em;">
+                        <strong>Deployment Steps:</strong>
+                        <span style="margin-left: 20px;">1. Command & Service Testing</span>
+                        <span style="margin-left: 20px;">2. Multi-tenant Job</span>
+                        <span style="margin-left: 20px;">3. Email Implementation</span>
+                        <span style="margin-left: 20px;">4. Logging System</span>
+                        <span style="margin-left: 20px;">5. Data Cleanup</span>
                     </div>
                 </div>
                 
-                <!-- Row 5: Performance Optimizations -->
-                <div class="component service grid-row-5 grid-col-1">
-                    <div class="component-title">🚀 Database Optimizations</div>
+                <!-- Row 6: Performance Optimizations -->
+                <div class="component service grid-row-6 grid-col-1">
+                    <div class="component-title">🚀 Queue & Processing</div>
                     <div class="component-details">
-                        Performance enhancement strategies
+                        Job queue optimization strategies
                     </div>
                     <div class="tech-specs">
-                        <span class="optimization-tag">Composite Indexes</span>
-                        <span class="optimization-tag">Covering Indexes</span>
-                        <span class="optimization-tag">Query Caching</span>
-                        <span class="optimization-tag">Read Replicas</span>
-                        <span class="optimization-tag">Connection Pooling</span>
+                        <span class="optimization-tag">Chunked Processing</span>
+                        <span class="optimization-tag">Queue Delays</span>
+                        <span class="optimization-tag">Job Chaining</span>
+                        <span class="optimization-tag">Failure Handling</span>
                     </div>
-                    <div class="json-structure">Key Indexes:
-• idx_week_id
-• idx_status  
-• idx_week_dates
-• unique_week_company</div>
+                    <div class="json-structure">Configuration:
+• Companies per chunk: 500
+• Queue with delays
+• Chain jobs pattern
+• Continue on individual failures</div>
                 </div>
                 
-                <div class="component service grid-row-5 grid-col-2">
-                    <div class="component-title">💾 Caching Strategy</div>
+                <div class="component service grid-row-6 grid-col-2">
+                    <div class="component-title">💾 Cache Management</div>
                     <div class="component-details">
-                        Redis-based performance caching
+                        Per-tenant caching strategy
                     </div>
                     <div class="tech-specs">
-                        <span class="optimization-tag">Company Settings</span>
-                        <span class="optimization-tag">Calculation Templates</span>
-                        <span class="optimization-tag">Active Client Lists</span>
+                        <span class="optimization-tag">Per-tenant Cache</span>
+                        <span class="optimization-tag">Auto Cleanup</span>
                         <span class="optimization-tag">Reference Data</span>
+                        <span class="optimization-tag">Template Cache</span>
                     </div>
-                    <div class="json-structure">Cache Refresh:
-• Company data: Real-time
-• Client lists: Hourly
-• Templates: Daily</div>
+                    <div class="json-structure">Cache Lifecycle:
+• Cache during calculation
+• Delete after service completion
+• Reference data caching
+• Template caching</div>
                 </div>
                 
-                <div class="component service grid-row-5 grid-col-3">
-                    <div class="component-title">🔄 Retry & Recovery</div>
+                <div class="component service grid-row-6 grid-col-3">
+                    <div class="component-title">📧 Email Batching</div>
                     <div class="component-details">
-                        Error handling and resilience
+                        Email delivery optimization
                     </div>
                     <div class="tech-specs">
-                        <span class="optimization-tag">Circuit Breaker</span>
-                        <span class="optimization-tag">Exponential Backoff</span>
-                        <span class="optimization-tag">Dead Letter Queue</span>
+                        <span class="optimization-tag">Batch Size: 50</span>
+                        <span class="optimization-tag">30s Delays</span>
+                        <span class="optimization-tag">Failure Tracking</span>
                         <span class="optimization-tag">Queue Integration</span>
                     </div>
-                    <div class="json-structure">Retry Logic:
-• Max attempts: 3
-• Backoff: 1s, 5s, 15s
-• Failure threshold: 5%</div>
+                    <div class="json-structure">Email Flow:
+• Batch processing
+• Rate limiting
+• Failed email queuing
+• Retry mechanism</div>
                 </div>
                 
-                <div class="component service grid-row-5 grid-col-4">
-                    <div class="component-title">🌐 Multi-language Support</div>
+                <div class="component service grid-row-6 grid-col-4">
+                    <div class="component-title">🧹 Data Cleanup</div>
                     <div class="component-details">
-                        Localization and formatting
+                        Historical data management
                     </div>
                     <div class="tech-specs">
-                        <span class="optimization-tag">Arabic</span>
-                        <span class="optimization-tag">English</span>
-                        <span class="optimization-tag">Currency Format</span>
-                        <span class="optimization-tag">Number Format</span>
+                        <span class="optimization-tag">Historical Cleanup</span>
+                        <span class="optimization-tag">Storage Optimization</span>
+                        <span class="optimization-tag">Automated Process</span>
+                        <span class="optimization-tag">Data Retention</span>
                     </div>
-                    <div class="json-structure">Features:
-• RTL/LTR support
-• Currency symbols
-• Date formatting
-• Number localization</div>
+                    <div class="json-structure">Cleanup Strategy:
+• Delete old weekly_insights
+• Maintain audit trail
+• Automated scheduling
+• Storage optimization</div>
                 </div>
                 
-                <!-- Row 6: Monitoring & KPIs -->
-                <div class="component monitoring grid-row-6 grid-col-span-4">
+                <!-- Row 7: Monitoring & KPIs -->
+                <div class="component monitoring grid-row-7 grid-col-span-4">
                     <div class="component-title">📈 Monitoring & Key Performance Indicators</div>
-                    <div class="performance-metrics">
-                        <div class="metric-card">
-                            <div class="metric-value">< 2 hours</div>
-                            <div class="metric-label">Processing Time Limit</div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                        <div class="performance-metrics">
+                            <div class="metric-card">
+                                <div class="metric-value">500</div>
+                                <div class="metric-label">Companies per Chunk</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">50</div>
+                                <div class="metric-label">Emails per Batch</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">30s</div>
+                                <div class="metric-label">Batch Delay</div>
+                            </div>
                         </div>
-                        <div class="metric-card">
-                            <div class="metric-value">< 5%</div>
-                            <div class="metric-label">Email Failure Rate</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">< 1GB</div>
-                            <div class="metric-label">Memory Usage Limit</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">< 500ms</div>
-                            <div class="metric-label">Calculation Time Limit</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">500</div>
-                            <div class="metric-label">Companies per Chunk</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">50</div>
-                            <div class="metric-label">Emails per Batch</div>
+                        <div>
+                            <div class="json-structure">Laravel Schedule:
+$schedule->command('weekly-insights')
+         ->weekly('4:00')
+         ->timezone('Asia/Riyadh');
+
+Console Command Structure:
+• WeeklyInsightsCommand
+• Dispatches job chain
+• Error handling & logging</div>
                         </div>
                     </div>
-                    <div class="json-structure">Log Structure:
+                    <div class="json-structure">Monitoring Log Structure:
 {
   "week_id": "2025-30",
   "processing_duration_ms": 45000,
@@ -474,7 +526,14 @@ CREATE TABLE tenant_insights (
   "average_calculation_time_ms": 36,
   "memory_peak_mb": 512,
   "retry_attempts": 15
-}</div>
+}
+
+Deployment & Testing Steps:
+1. Command and Service Implementation → Database testing for accurate weekly_insights data
+2. Multi-tenant job processing → Queue system testing
+3. Email sending implementation → Template and delivery testing  
+4. Email delivery logging → Tracking and monitoring setup
+5. Historical data cleanup → Storage optimization implementation</div>
                 </div>
                 
             </div>
